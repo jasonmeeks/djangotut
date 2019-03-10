@@ -1,9 +1,10 @@
 from django.shortcuts import get_object_or_404, render
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.views import generic
 from django.utils import timezone
 from django.db.models import F
+from django.contrib.auth.models import User
 
 from .models import Choice, Question
 
@@ -17,6 +18,11 @@ class IndexView(generic.ListView):
         Return the last five published questions (not including those set to be
         published in the future).
         """
+        if self.request.user.is_superuser:
+            return Question.objects.filter(
+                pub_date__lte=timezone.now()
+            ).distinct().order_by('-pub_date')[:5]
+
         return Question.objects.filter(
             pub_date__lte=timezone.now(),
             choice__isnull=False

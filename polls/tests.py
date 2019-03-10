@@ -209,6 +209,11 @@ class QuestionResultViewTests(TestCase):
         self.assertContains(response, past_question.question_text)
 
 
+"""
+Need to test logged in / out user to see if they see unpublished posts
+w/o choices using Selenium. Prob need to add a log in/out button first
+"""
+
 # class MySeleniumTests(StaticLiveServerTestCase):
 #     fixtures = ['user-data.json']
 
