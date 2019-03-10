@@ -3,6 +3,7 @@ import datetime
 from django.test import TestCase
 from django.utils import timezone
 from django.urls import reverse
+from django.contrib.auth.models import User
 # from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 # from selenium.webdriver.firefox.webdriver import WebDriver
 
@@ -58,6 +59,13 @@ class QuestionModelTests(TestCase):
 
 
 class QuestionIndexViewTests(TestCase):
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='user', password='hunter2')
+        self.user.is_superuser = True
+        self.user.save()
+
     def test_no_questions(self):
         """
         If no questions exist, an appropriate message is displayed.
@@ -156,6 +164,28 @@ class QuestionIndexViewTests(TestCase):
             ['<Question: Question with choices.>']
         )
 
+    def test_question_without_choices_authenticated(self):
+        """
+        The questions index page will display questions without choices
+        because user is authenticated as superuser.
+        """
+        self.client.force_login(self.user)
+        create_question(question_text="Question without choices", days=-5)
+        response = self.client.get(reverse('polls:index'))
+        self.assertQuerysetEqual(
+            response.context['latest_question_list'],
+            ['<Question: Question without choices>']
+        )
+
+    def test_question_without_choices_unauthenticated(self):
+        """
+        The questions index page will not display questions without choices
+        because user is unauthenticated as superuser.
+        """
+        create_question(question_text="Question without choices", days=-5)
+        response = self.client.get(reverse('polls:index'))
+        self.assertQuerysetEqual(response.context['latest_question_list'], [])
+
 
 class QuestionDetailViewTests(TestCase):
     def test_future_question(self):
@@ -210,8 +240,7 @@ class QuestionResultViewTests(TestCase):
 
 
 """
-Need to test logged in / out user to see if they see unpublished posts
-w/o choices using Selenium. Prob need to add a log in/out button first
+Here's some selenium code to try out sometime!
 """
 
 # class MySeleniumTests(StaticLiveServerTestCase):
